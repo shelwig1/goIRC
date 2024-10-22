@@ -1,0 +1,2 @@
+Ctrl + Shift + 5 to split terminal windows into 2
+

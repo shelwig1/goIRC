@@ -13,15 +13,13 @@ type User struct {
 	Address net.Addr
 }
 
+func (u User) String() string {
+	return fmt.Sprintf("Name: %s, Address: %s", u.Name, u.Address.String())
+}
+
 var active_users []User
 
 func main() {
-	// listen on whatever dealio
-
-	// whenever we get a client, spin it off and list off all the connections we need
-
-	// What data gets sent with the initial connection?
-	// Let's go with username required on initial connection
 	listener, err := net.Listen("tcp", server_address)
 
 	if err != nil {
@@ -43,17 +41,8 @@ func main() {
 }
 
 func handleConnection(conn net.Conn) {
-	// send off a list of names that are currently in the server
-	defer func() {
-		//handleDisconnect(conn)
-		conn.Close()
-	}()
-
-	// Add the user to the current list
 
 	buf := make([]byte, 1<<19)
-
-	// How do I send the initial user name?
 
 	n, err := conn.Read(buf)
 
@@ -66,12 +55,69 @@ func handleConnection(conn net.Conn) {
 
 	active_users = append(active_users, new_user)
 
-	fmt.Println("Handling connection with " + username)
+	// fmt.Println("Handling connection with " + username)
+
+	fmt.Println("User connected with the following data:")
+	fmt.Println(new_user)
+
+	// Send list of active users and hande input
+
+	sendUserList(conn)
+
+	defer func() {
+		handleDisconnect(new_user)
+		conn.Close()
+	}()
+
+	// I need to be able to handle state here - I need to know what kind of menu tree we're in
+	// OR I just start building the GUI here and say fuck it
+
+	// Making an API to facilitate those connections
+
+	// P2P necessarily prevents me from hiding the IPs of the two fellas chatting
+	for {
+		n, err := conn.Read(buf)
+		if err != nil {
+			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+				continue
+			}
+			fmt.Println("Connection closed by user:", conn.RemoteAddr())
+			return
+		}
+
+		fmt.Printf("Received: %s\n", string(buf[:n]))
+	}
 }
 
-// When they join we need to add them to the user list
-// When they lose we need to remove them from the user list
+func sendUserList(conn net.Conn) {
+	var message string = "Current users:"
+
+	for i := 0; i < len(active_users); i++ {
+		message += fmt.Sprintf("\n%d %s", i+1, active_users[i].Name)
+	}
+
+	conn.Write([]byte(message))
+}
 
 func handleDisconnect(u User) {
-	// find that cocksucker in the big boy list
+	var new_active_users []User
+
+	for i := 0; i < len(active_users); i++ {
+		if u != active_users[i] {
+			new_active_users = append(new_active_users, u)
+		}
+	}
+
+	active_users = new_active_users
+
+	fmt.Println("Active users after disconnect: ", active_users)
+
+}
+
+func askPermission(asker User, recipient User) {
+	// Send a message to the recipient saying asker wants to chat with them
+
+	// Accept or decline
+
+	// Setup a connection between the two of them
 }
