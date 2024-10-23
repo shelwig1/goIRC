@@ -19,7 +19,7 @@ func (u User) String() string {
 
 var active_users []User
 
-func main() {
+func startServer() {
 	listener, err := net.Listen("tcp", server_address)
 
 	if err != nil {
@@ -86,10 +86,14 @@ func handleConnection(conn net.Conn) {
 		}
 
 		fmt.Printf("Received: %s\n", string(buf[:n]))
+		// Okay, now move all the route traffic guys into the router and go from there
+		// Need to figure out how to convert the traffice back into a packet object
+		// Serializing and deserializing JSON
+		//routeTraffic((string(buf[:n])))
 	}
 }
 
-func sendUserList(conn net.Conn) {
+/* func sendUserList(conn net.Conn) {
 	var message string = "Current users:"
 
 	for i := 0; i < len(active_users); i++ {
@@ -97,7 +101,7 @@ func sendUserList(conn net.Conn) {
 	}
 
 	conn.Write([]byte(message))
-}
+} */
 
 func handleDisconnect(u User) {
 	var new_active_users []User
@@ -114,10 +118,13 @@ func handleDisconnect(u User) {
 
 }
 
+/*
 func askPermission(asker User, recipient User) {
 	// Send a message to the recipient saying asker wants to chat with them
 
 	// Accept or decline
 
 	// Setup a connection between the two of them
+
 }
+*/
