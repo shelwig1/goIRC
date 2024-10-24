@@ -40,6 +40,49 @@ func startServer() {
 
 }
 
+func newHandleConnection(conn net.Conn) {
+	buf := make([]byte, 1<<19)
+	new_user := User{}
+
+	defer func() {
+		handleDisconnect(new_user)
+		conn.Close()
+	}()
+
+	for {
+		n, err := conn.Read(buf)
+		if err != nil {
+			if netErr, ok := err.(net.Error); ok && netErr.Timeout() {
+				continue
+			}
+			fmt.Println("Connection closed by user:", conn.RemoteAddr())
+			return
+		}
+
+		if new_user == (User{}) {
+			createUser(conn)
+		}
+		fmt.Printf("Received: %s\n", string(buf[:n]))
+
+		// create packet object
+		// routeTraffic(packet)
+		// if routeTraffic(packet) != nil { }
+	}
+}
+
+func createUser(conn net.Conn) (user User) {
+	// Fix this
+	/* username := string(buf[:n])
+	new_user := User{Name: username, Address: conn.RemoteAddr()}
+
+	active_users = append(active_users, new_user)
+
+	fmt.Println("User connected with the following data:")
+	fmt.Println(new_user)
+
+	sendUserList(conn) */
+}
+
 func handleConnection(conn net.Conn) {
 
 	buf := make([]byte, 1<<19)
@@ -55,12 +98,8 @@ func handleConnection(conn net.Conn) {
 
 	active_users = append(active_users, new_user)
 
-	// fmt.Println("Handling connection with " + username)
-
 	fmt.Println("User connected with the following data:")
 	fmt.Println(new_user)
-
-	// Send list of active users and hande input
 
 	sendUserList(conn)
 
@@ -69,12 +108,6 @@ func handleConnection(conn net.Conn) {
 		conn.Close()
 	}()
 
-	// I need to be able to handle state here - I need to know what kind of menu tree we're in
-	// OR I just start building the GUI here and say fuck it
-
-	// Making an API to facilitate those connections
-
-	// P2P necessarily prevents me from hiding the IPs of the two fellas chatting
 	for {
 		n, err := conn.Read(buf)
 		if err != nil {
@@ -86,14 +119,11 @@ func handleConnection(conn net.Conn) {
 		}
 
 		fmt.Printf("Received: %s\n", string(buf[:n]))
-		// Okay, now move all the route traffic guys into the router and go from there
-		// Need to figure out how to convert the traffice back into a packet object
-		// Serializing and deserializing JSON
-		//routeTraffic((string(buf[:n])))
+
 	}
 }
 
-/* func sendUserList(conn net.Conn) {
+func sendUserList(conn net.Conn) {
 	var message string = "Current users:"
 
 	for i := 0; i < len(active_users); i++ {
@@ -101,7 +131,20 @@ func handleConnection(conn net.Conn) {
 	}
 
 	conn.Write([]byte(message))
-} */
+}
+
+func handleNewConnection() (user User) {
+	// Change the way we process this shit, need to pull from the packet object
+	/* 	username := string(buf[:n])
+	   	new_user := User{Name: username, Address: conn.RemoteAddr()}
+
+	   	active_users = append(active_users, new_user)
+
+	   	fmt.Println("User connected with the following data:")
+	   	fmt.Println(new_user)
+
+	   	sendUserList(conn) */
+}
 
 func handleDisconnect(u User) {
 	var new_active_users []User
@@ -128,3 +171,7 @@ func askPermission(asker User, recipient User) {
 
 }
 */
+
+func handleBadRequest() {
+	fmt.Println("Malformed request, something broke - check serialization / deserialization")
+}

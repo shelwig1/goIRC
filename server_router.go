@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net"
 )
 
@@ -10,16 +9,16 @@ type Packet struct {
 	Info string
 }
 
-// Make them listen
-
 func routeTraffic(packet Packet, conn net.Conn) {
 
 	switch packet.Goal {
-	case "initial_connection":
-		//initialConnection(packet)
+	/* 	case "initial_connection":
+	//initialConnection(packet) */
 	case "request_list":
 		sendUserList(conn)
-	case "permission_response":
+	case "request_user":
+		sendUserRequest()
+	case "request_user_response":
 		processResponse()
 	default:
 		handleBadRequest()
@@ -27,6 +26,7 @@ func routeTraffic(packet Packet, conn net.Conn) {
 
 }
 
+/*
 func sendUserList(conn net.Conn) {
 	var message string = "Current users:"
 
@@ -45,3 +45,4 @@ func processResponse() {
 func handleBadRequest() {
 
 }
+*/
