@@ -5,8 +5,10 @@ import (
 )
 
 type Packet struct {
-	Goal string
-	Info string
+	User       string
+	Goal       string
+	Info       string
+	TargetUser string
 }
 
 func routeTraffic(packet Packet, conn net.Conn) {
@@ -17,9 +19,9 @@ func routeTraffic(packet Packet, conn net.Conn) {
 	case "request_list":
 		sendUserList(conn)
 	case "request_user":
-		sendUserRequest()
+		//sendUserRequest(packet)
 	case "request_user_response":
-		processResponse()
+		//processResponse(packet)
 	default:
 		handleBadRequest()
 	}

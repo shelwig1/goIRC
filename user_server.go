@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
@@ -35,7 +36,8 @@ func startServer() {
 			continue
 		}
 
-		go handleConnection(conn)
+		go newHandleConnection(conn)
+		//go handleConnection(conn)
 	}
 
 }
@@ -59,9 +61,19 @@ func newHandleConnection(conn net.Conn) {
 			return
 		}
 
-		if new_user == (User{}) {
-			createUser(conn)
+		// Demarshal incoming packet
+		data := buf[:n]
+		var packet Packet
+		err = json.Unmarshal(data, &packet)
+		if err != nil {
+			log.Fatal(err)
 		}
+
+		// Create user if needed
+		if new_user == (User{}) {
+			new_user = createUser(packet.Info, conn)
+		}
+
 		fmt.Printf("Received: %s\n", string(buf[:n]))
 
 		// create packet object
@@ -70,7 +82,15 @@ func newHandleConnection(conn net.Conn) {
 	}
 }
 
-func createUser(conn net.Conn) (user User) {
+func createUser(username string, conn net.Conn) (user User) {
+	new_user := User{Name: username, Address: conn.RemoteAddr()}
+
+	active_users = append(active_users, new_user)
+
+	fmt.Println("User connected with the following data:")
+	fmt.Println(new_user)
+
+	return new_user
 	// Fix this
 	/* username := string(buf[:n])
 	new_user := User{Name: username, Address: conn.RemoteAddr()}
@@ -81,9 +101,11 @@ func createUser(conn net.Conn) (user User) {
 	fmt.Println(new_user)
 
 	sendUserList(conn) */
+
+	//fmt.Println("create user doodad")
 }
 
-func handleConnection(conn net.Conn) {
+/* func handleConnection(conn net.Conn) {
 
 	buf := make([]byte, 1<<19)
 
@@ -121,7 +143,7 @@ func handleConnection(conn net.Conn) {
 		fmt.Printf("Received: %s\n", string(buf[:n]))
 
 	}
-}
+} */
 
 func sendUserList(conn net.Conn) {
 	var message string = "Current users:"
@@ -131,19 +153,6 @@ func sendUserList(conn net.Conn) {
 	}
 
 	conn.Write([]byte(message))
-}
-
-func handleNewConnection() (user User) {
-	// Change the way we process this shit, need to pull from the packet object
-	/* 	username := string(buf[:n])
-	   	new_user := User{Name: username, Address: conn.RemoteAddr()}
-
-	   	active_users = append(active_users, new_user)
-
-	   	fmt.Println("User connected with the following data:")
-	   	fmt.Println(new_user)
-
-	   	sendUserList(conn) */
 }
 
 func handleDisconnect(u User) {
@@ -174,4 +183,15 @@ func askPermission(asker User, recipient User) {
 
 func handleBadRequest() {
 	fmt.Println("Malformed request, something broke - check serialization / deserialization")
+}
+
+func sendPacket(conn net.Conn, goal string, info string) {
+	packet := Packet{Goal: goal, Info: info}
+	data, err := json.Marshal(packet)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	conn.Write(data)
 }

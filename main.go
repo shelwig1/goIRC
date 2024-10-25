@@ -1,6 +1,9 @@
 package main
 
 func main() {
+	startServer()
+}
 
-	Doodad()
+func add(a, b int) int {
+	return a + b
 }
