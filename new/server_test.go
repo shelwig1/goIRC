@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net"
 	"testing"
 	"time"
@@ -31,6 +32,29 @@ func TestStartServer(t *testing.T) {
 
 	// If connection is successful, the test passes
 	t.Log("Successfully connected to the server")
+}
+
+func TestInitialConnection(t *testing.T) {
+
+	go startServer() // Start the server in a goroutine
+
+	time.Sleep(1 * time.Second) // Wait a moment for the server to start
+
+	// Try to connect to the server
+	conn, err := net.Dial("tcp", serverAddress)
+	if err != nil {
+		t.Fatalf("Failed to connect to server: %v", err)
+	}
+
+	packet := Packet{Username: "shelwig", Goal: "initial_connect", Address: conn.LocalAddr()}
+	data := serializePacket(packet)
+
+	conn.Write(data)
+
+	// Wait a second
+
+	// Check the active_users
+	fmt.Println(active_users)
 }
 
 /*
@@ -98,7 +122,7 @@ func TestSerialization(t *testing.T) {
 
 }
 
-func TestInitialConnection(t *testing.T) {
+/* func TestInitialConnection(t *testing.T) {
 	// connect
 	// send the packet of initial connection
 	serverConn, clientConn := net.Pipe()
@@ -136,3 +160,4 @@ func TestInitialConnection(t *testing.T) {
 	}
 
 }
+*/
